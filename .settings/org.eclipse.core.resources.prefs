@@ -1,0 +1,7 @@
+eclipse.preferences.version=1
+encoding//src/MusicLibraryConverter.py=utf-8
+encoding//src/musiclibraryconverter/MusicLibraryConverterBackend.py=utf-8
+encoding//src/musiclibraryconverter/MusicLibraryConverterMaster.py=utf-8
+encoding//src/musiclibraryconverter/MusicLibraryConverterSlave.py=utf-8
+encoding//src/musiclibraryconverter/MusicLibraryTagConverter.py=utf-8
+encoding//src/musiclibraryconverter/__init__.py=utf-8
