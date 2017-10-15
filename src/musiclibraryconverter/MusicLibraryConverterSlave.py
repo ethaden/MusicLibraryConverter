@@ -58,15 +58,15 @@ class MusicLibraryConverterSlave(object):
         self.__converter = converter
     
     def run(self):
-        if not self.__metadataonly:
-            if not self.convertFile():
-                return
-        if (not self.__dstFile.exists()):
-            return
         try:
-            self.convertTags()
+            if not self.__metadataonly:
+                if not self.convertFile():
+                    return
+                if (not self.__dstFile.exists()):
+                    return
+                self.convertTags()
         except Exception as e:
-            print ('An exception of type'+str(type(e))+' occured: '+str(e))
+            print ('An exception of type'+str(type(e))+' occured while converting file "'+str(self.__srcFile)+'": '+str(e))
         # For testing:
 #         print ('Only for testing: Delete output file')
 #         self.__dstFile.unlink()
