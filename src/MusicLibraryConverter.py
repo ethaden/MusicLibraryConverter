@@ -137,12 +137,17 @@ def main(argv=None): # IGNORE:C0111
         dst = args.dst
         dict = vars(args)
         if 'nice' in dict:
-            nice = args.nice
             p = psutil.Process(os.getpid())
             if platform.system()=='Windows':
                 p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
             else:
-                p.nice(nice)
+                try:
+                    nice = int(args.nice)
+                    p.nice(nice)
+                except ValueError as e:
+                    logging.warning("Please use numerical value for NICE! Using system default process priority")
+                except psutil.AccessDenied as e:
+                    logging.warning("Unable to set requested nice level: "+str(e))
 
         logging.basicConfig(level=logging.INFO, format='%(asctime)-15s -- %(levelname)s -- %(message)s')
         logging.info("MusicLibraryConverter started...")
