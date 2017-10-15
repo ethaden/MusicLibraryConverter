@@ -83,7 +83,7 @@ class MusicLibraryConverterMaster(object):
         self.__dst = Path(dst)
         self.__srcExt = srcExt
         self.__dstExt = dstExt
-        self.__coverExtList = ['jpg', 'jpeg', 'bmp', 'png']
+        self.__coverExtList = ['jpg', 'jpeg', 'bmp', 'png', 'gif']
         #self.__executer = ProcessPoolExecutor(max_workers=threads)
         self.__executer = ThreadPoolExecutor(max_workers=threads)
         self.__futures = []
