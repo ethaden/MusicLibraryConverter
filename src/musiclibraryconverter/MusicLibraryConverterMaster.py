@@ -27,6 +27,7 @@ import os
 import time
 import threading
 import platform
+import sys
 
 from random import randint
 from concurrent.futures import *
@@ -121,7 +122,12 @@ class MusicLibraryConverterMaster(object):
             skipFile = True
         # Do the work!
         if not skipFile:
-            print ('"'+str(srcFile)+'"\n -> "'+str(dstFile)+'"')
+            try:
+                srcFileStr = (str(srcFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+                dstFileStr = (str(dstFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+                print ('"'+srcFileStr+'"\n -> "'+dstFileStr+'"')
+            except Exception as e:
+                print ('An exception occured: '+str(e))
             self.__mutex.acquire()
             future = self.__executer.submit(createWorker, self.__verbose, self.__metadataonly, self.__converter, self.__evInterrupted, srcFile, dstFile)
             self.__futures.append(future)
