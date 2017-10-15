@@ -40,6 +40,7 @@ import os
 import platform
 import signal
 import sys
+import logging
 
 import psutil
 
@@ -81,11 +82,7 @@ def main(argv=None): # IGNORE:C0111
         else:
             sys.argv.extend(argv)
             
-    #     for arg in argv:
-    #         print (arg)
-    
         myPath = os.path.dirname(argv[0])
-    #    print (myPath)
         sys.path.append(myPath)
     
         program_name = os.path.basename(sys.argv[0])
@@ -147,12 +144,15 @@ def main(argv=None): # IGNORE:C0111
             else:
                 p.nice(nice)
 
+        logging.basicConfig(level=logging.INFO, format='%(asctime)-15s -- %(levelname)s -- %(message)s')
+        logging.info("MusicLibraryConverter started...")
         if verbose > 0:
-            print("Verbose mode on")
+            logging.getLogger().setLevel(logging.DEBUG)
+            logging.info("Verbose mode on")
             if recursive:
-                print("Recursive mode on")
+                logging.info("Recursive mode on")
             else:
-                print("Recursive mode off")
+                logging.info("Recursive mode off")
 
         if includePattern and excludePattern and includePattern == excludePattern:
             raise CLIError("include and exclude pattern are equal! Nothing will be processed.")

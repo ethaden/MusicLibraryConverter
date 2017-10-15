@@ -28,6 +28,7 @@ import time
 import threading
 import platform
 import sys
+import logging
 
 from random import randint
 from concurrent.futures import *
@@ -127,7 +128,7 @@ class MusicLibraryConverterMaster(object):
                 dstFileStr = (str(dstFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
                 #print ('"'+srcFileStr+'"\n -> "'+dstFileStr+'"')
             except Exception as e:
-                print ('An exception occured: '+str(e))
+                logging.error('An exception occured: '+str(e))
             self.__mutex.acquire()
             future = self.__executer.submit(createWorker, self.__verbose, self.__metadataonly, self.__converter, self.__evInterrupted, srcFile, dstFile)
             self.__futures.append(future)
@@ -178,6 +179,7 @@ class MusicLibraryConverterMaster(object):
         try:
             if self.__src.exists() and not self.__dst.exists():
                 self.__dst.mkdir(parents=True)
+            logging.info("Analyzing specified files/directories...")
             self.handlePathRecursively(self.__src, self.__dst)
             finished=False
             while not finished:
@@ -191,9 +193,9 @@ class MusicLibraryConverterMaster(object):
                     time.sleep(0.1)
                 except InterruptedError:
                     pass
-            print ("Conversion finished")
+            logging.info("Conversion finished")
         except FileNotFoundError as e:
-            print ('Source file or directory not found: "'+str(e)+'"')
+            logging.error('Source file or directory not found: "'+str(e)+'"')
         
     def runTest(self):
         try:
@@ -225,17 +227,17 @@ class MusicLibraryConverterMaster(object):
                 self.__mutex.release()
 #            while not(all((f.done() or f.cancelled()) for f in self.__futures)):
 #                pass
-            print ("All tasks are finished")
+            logging.info("All tasks are finished")
         except KeyboardInterrupt:
             pass
         
     def interrupt(self):
-        print ("Sending CTRL-C event to all threads")
+        logging.info("Sending CTRL-C event to all threads")
         self.__executer.shutdown(wait=False)
         self.__evInterrupted.set()
 
     def interruptOld(self):
-        print ("Sending CTRL-C event to all threads")
+        logging.info("Sending CTRL-C event to all threads")
         self.__mutex.acquire()
 #         print ("Sending CTRL-C: Mutex acquired!")
         self.__executer.shutdown(wait=False)
@@ -252,5 +254,5 @@ class MusicLibraryConverterMaster(object):
         try:
             future.result()
         except Exception as e:
-            print ("Worker exited with exception: "+str(e))
+            logging.error("Worker exited with exception: "+str(e))
 

@@ -16,6 +16,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MusicLibraryConverter.  If not, see <http://www.gnu.org/licenses/>.
+#
+# frame.text = unicode(frame).encode("iso-8859-1").decode("koi8-r")
 
 '''
 Created on 03.04.2014
@@ -23,11 +25,14 @@ Created on 03.04.2014
 @author: Eike Thaden
 '''
 
+import logging
+
 from pathlib import Path
 from mutagenx.id3 import ID3, TIT2, TALB, TPE1, TPE2, TCOM, TCON, COMM, TRCK, TPOS, TDRC, TextFrame
 from mutagenx.flac import FLAC
 from mutagenx.easyid3 import EasyID3
 from builtins import type
+import codecs
 
 # factory
 def createMusicLibraryTagConverter(file):
@@ -50,6 +55,9 @@ class MusicLibraryTagConverter(object):
         '''
         Constructor
         '''
+        
+    def getEncoding(self):
+        return "UTF-8"
         
     @property
     def title(self):
@@ -155,6 +163,7 @@ class MusicLibraryTagConverter(object):
         if not isinstance(other, MusicLibraryTagConverter):
             raise Exception('Error while copying meta tags: Source object is not of type MusicLibraryTagConverter')
         self.title = other.title
+#        self.title = other.title.encode(self.getEncoding())
         self.artist = other.artist
         self.album = other.album
         self.composer = other.composer
@@ -179,6 +188,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         MusicLibraryTagConverter.__init__(self)
         self.__file = file
         self.__id3 = ID3(file.as_posix())
+        self.__v2_version=3
     
     def delete_all(self):
         self.__id3.delete()
@@ -187,7 +197,23 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         return self.__id3.pprint()
 
     def save(self):
-        self.__id3.save()
+        # Save id3 v2.3 format for retaining compatibility to Windows Media Player
+        self.__id3.update_to_v23()
+        self.__id3.save(v2_version=3)
+
+    def getEncoding(self):
+        return "UTF-16-LE"
+    
+    @property
+    def v2_version(self):
+        return self.__v2_version
+    
+    @v2_version.setter
+    def v2_version(self, version):
+        if not (version==3 or version==4):
+            logging.warning('Only id3 v2.3 or v2.4 tags are supported')
+        else:
+            self.__v2_version = version
 
     @property
     def title(self):
@@ -200,7 +226,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if title == None:
             self.__id3.delall('TIT2')
         else:
-            self.__id3.add(TIT2(encoding=3, text=title))
+            self.__id3.add(TIT2(encoding=1 if self.__v2_version==3 else 3, text=title))
 
     @property
     def album(self):
@@ -213,7 +239,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if album == None:
             self.__id3.delall('TALB')
         else:
-            self.__id3.add(TALB(encoding=3, text=album))    
+            self.__id3.add(TALB(encoding=1 if self.__v2_version==3 else 3, text=album))    
 
     @property
     def artist(self):
@@ -226,7 +252,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if artist == None:
             self.__id3.delall('TPE1')
         else:
-            self.__id3.add(TPE1(encoding=3, text=artist))    
+            self.__id3.add(TPE1(encoding=1 if self.__v2_version==3 else 3, text=artist))    
 
     @property
     def album_artist(self):
@@ -239,7 +265,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if album_artist == None:
             self.__id3.delall('TPE2')
         else:
-            self.__id3.add(TPE2(encoding=3, text=album_artist))    
+            self.__id3.add(TPE2(encoding=1 if self.__v2_version==3 else 3, text=album_artist))    
 
     @property
     def composer(self):
@@ -252,7 +278,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if composer == None:
             self.__id3.delall('TCOM')
         else:
-            self.__id3.add(TCOM(encoding=3, text=composer))    
+            self.__id3.add(TCOM(encoding=1 if self.__v2_version==3 else 3, text=composer))    
 
     @property
     def performer(self):
@@ -265,7 +291,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if performer == None:
             self.__id3.delall('TPE2')
         else:
-            self.__id3.add(TPE2(encoding=3, text=performer))    
+            self.__id3.add(TPE2(encoding=1 if self.__v2_version==3 else 3, text=performer))    
     
     @property
     def genre(self):
@@ -278,7 +304,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if genre == None:
             self.__id3.delall('TCON')
         else:
-            self.__id3.add(TCON(encoding=3, text=genre))    
+            self.__id3.add(TCON(encoding=1 if self.__v2_version==3 else 3, text=genre))    
     
     @property
     def comment(self):
@@ -291,7 +317,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if comment == None:
             self.__id3.delall('COMM')
         else:
-            self.__id3.add(COMM(encoding=3, text=comment))    
+            self.__id3.add(COMM(encoding=1 if self.__v2_version==3 else 3, text=comment))    
 
     @property
     def date(self):
@@ -304,7 +330,7 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
         if date == None:
             self.__id3.delall('TDRC')
         else:
-            self.__id3.add(TDRC(encoding=3, text=date))    
+            self.__id3.add(TDRC(encoding=1 if self.__v2_version==3 else 3, text=date))    
 
     @property
     def tracknumber(self):
@@ -326,9 +352,9 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
             self.__id3.delall('TRCK')
         else:
             if (current_totaltracks==None):
-                self.__id3.add(TRCK(encoding=3, text=tracknumber))
+                self.__id3.add(TRCK(encoding=1 if self.__v2_version==3 else 3, text=tracknumber))
             else:
-                self.__id3.add(TRCK(encoding=3, text=str(tracknumber)+'/'+str(current_totaltracks)))
+                self.__id3.add(TRCK(encoding=1 if self.__v2_version==3 else 3, text=str(tracknumber)+'/'+str(current_totaltracks)))
     
     @property
     def totaltracks(self):
@@ -349,9 +375,9 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
             self.__id3.delall('TRCK')
         else:
             if (totaltracks==None):
-                self.__id3.add(TRCK(encoding=3, text=current_track))
+                self.__id3.add(TRCK(encoding=1 if self.__v2_version==3 else 3, text=current_track))
             else:
-                self.__id3.add(TRCK(encoding=3, text=str(current_track)+'/'+str(totaltracks)))
+                self.__id3.add(TRCK(encoding=1 if self.__v2_version==3 else 3, text=str(current_track)+'/'+str(totaltracks)))
     
     @property
     def discnumber(self):
@@ -369,9 +395,9 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
             self.__id3.delall('TPOS')
         else:
             if current_totaldiscs == None:
-                self.__id3.add(TPOS(encoding=3, text=str(discnumber)))
+                self.__id3.add(TPOS(encoding=1 if self.__v2_version==3 else 3, text=str(discnumber)))
             else:
-                self.__id3.add(TPOS(encoding=3, text=str(discnumber))+'/'+str(current_totaldiscs))
+                self.__id3.add(TPOS(encoding=1 if self.__v2_version==3 else 3, text=str(discnumber))+'/'+str(current_totaldiscs))
 
     @property
     def totaldiscs(self):
@@ -389,9 +415,9 @@ class MusicLibraryTagConverterID3(MusicLibraryTagConverter):
             self.__id3.delall('TPOS')
         else:
             if (totaldiscs==None):
-                self.__id3.add(TPOS(encoding=3, text=str(current_disc)))
+                self.__id3.add(TPOS(encoding=1 if self.__v2_version==3 else 3, text=str(current_disc)))
             else:
-                self.__id3.add(TPOS(encoding=3, text=str(current_disc)+'/'+str(totaldiscs)))
+                self.__id3.add(TPOS(encoding=1 if self.__v2_version==3 else 3, text=str(current_disc)+'/'+str(totaldiscs)))
   
 
 class MusicLibraryTagConverterFlac(MusicLibraryTagConverter):
@@ -409,6 +435,9 @@ class MusicLibraryTagConverterFlac(MusicLibraryTagConverter):
 
     def pprint(self):
         return self.__flac.pprint()
+
+    def getEncoding(self):
+        return "UTF-8"
 
     @property
     def title(self):

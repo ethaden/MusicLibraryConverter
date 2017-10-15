@@ -27,6 +27,7 @@ import os
 import time
 import threading
 import subprocess
+import logging
 from random import randint
 from pathlib import Path
 from musiclibraryconverter.MusicLibraryConverterBackend import MusicLibraryConverterBackend
@@ -66,7 +67,7 @@ class MusicLibraryConverterSlave(object):
                     return
                 self.convertTags()
         except Exception as e:
-            print ('An exception of type'+str(type(e))+' occured while converting file "'+str(self.__srcFile)+'": '+str(e))
+            logging.error('An exception of type'+str(type(e))+' occured while converting file "'+str(self.__srcFile)+'": '+str(e))
         # For testing:
 #         print ('Only for testing: Delete output file')
 #         self.__dstFile.unlink()
@@ -74,13 +75,13 @@ class MusicLibraryConverterSlave(object):
     def convertFile(self):
         if (self.__converter == None):
             return
-        print ('"'+str(self.__srcFile)+'"\n -> "'+str(self.__dstFile)+'"')
+        logging.info('"'+str(self.__srcFile)+'"\n -> "'+str(self.__dstFile)+'"')
         args = self.__converter.createCommandline(self.__verbose, self.__srcFile, self.__dstFile)     
         if args == None:
             return
-        if self.__verbose:
-            print (*args, sep=' ', end='')
-            print ('\n')
+#        if self.__verbose:
+#            logging.debug(*args, sep=' ', end='')
+#            logging.debug('\n')
         #return
         process = subprocess.Popen(args)
         
@@ -118,5 +119,5 @@ class MusicLibraryConverterSlave(object):
             pass
 
     def interrupt(self):
-        print ("Trying to interrupt worker "+str(self.__id))
+        logging.debug("Trying to interrupt worker "+str(self.__id))
 
