@@ -125,7 +125,7 @@ class MusicLibraryConverterMaster(object):
             try:
                 srcFileStr = (str(srcFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
                 dstFileStr = (str(dstFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
-                print ('"'+srcFileStr+'"\n -> "'+dstFileStr+'"')
+                #print ('"'+srcFileStr+'"\n -> "'+dstFileStr+'"')
             except Exception as e:
                 print ('An exception occured: '+str(e))
             self.__mutex.acquire()

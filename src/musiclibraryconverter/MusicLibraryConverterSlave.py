@@ -74,6 +74,7 @@ class MusicLibraryConverterSlave(object):
     def convertFile(self):
         if (self.__converter == None):
             return
+        print ('"'+str(self.__srcFile)+'"\n -> "'+str(self.__dstFile)+'"')
         args = self.__converter.createCommandline(self.__verbose, self.__srcFile, self.__dstFile)     
         if args == None:
             return
