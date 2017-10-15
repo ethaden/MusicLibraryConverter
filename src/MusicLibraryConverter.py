@@ -17,8 +17,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MusicLibraryConverter.  If not, see <http://www.gnu.org/licenses/>.
-
-
 '''
 MusicLibraryConverter -- Batch convert your music library from flac to mp3.
 
@@ -36,13 +34,17 @@ must be possible to find them via the PATH environment. The Python 3 library mut
 @deffield    updated: Updated
 '''
 
-import sys
-import os
-import signal
-
 from argparse import ArgumentParser
 from argparse import RawDescriptionHelpFormatter
+import os
+import platform
+import signal
+import sys
+
+import psutil
+
 from musiclibraryconverter import MusicLibraryConverterMaster
+
 
 __all__ = []
 __version__ = 0.1
@@ -124,7 +126,6 @@ def main(argv=None): # IGNORE:C0111
         args = parser.parse_args()
 
         verbose = args.verbose
-        nice = args.nice
         recursive = args.recurse
         overwrite = args.overwrite
         metadataonly = args.metadataonly
@@ -137,6 +138,14 @@ def main(argv=None): # IGNORE:C0111
         threads = args.threads
         src = args.src
         dst = args.dst
+        dict = vars(args)
+        if 'nice' in dict:
+            nice = args.nice
+            p = psutil.Process(os.getpid())
+            if platform.system()=='Windows':
+                p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+            else:
+                p.nice(nice)
 
         if verbose > 0:
             print("Verbose mode on")
