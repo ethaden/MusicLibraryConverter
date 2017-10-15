@@ -23,21 +23,21 @@ Created on Mar 1, 2014
 @author: Eike Thaden
 '''
 
-import os
-import time
-import threading
-import platform
-import sys
-import logging
-
-from random import randint
 from concurrent.futures import *
+import logging
 from multiprocessing import Event
 from multiprocessing import RLock
+import os
 from pathlib import Path
+import platform
+from random import randint
+import sys
+import threading
+import time
+import shutil
 
-from musiclibraryconverter.MusicLibraryConverterSlave import MusicLibraryConverterSlave
 from musiclibraryconverter.MusicLibraryConverterBackend import MusicLibraryConverterBackend, MusicLibraryConverterBackendFactory
+from musiclibraryconverter.MusicLibraryConverterSlave import MusicLibraryConverterSlave
 
 
 supportedFileEndings = ['flac']
@@ -83,6 +83,7 @@ class MusicLibraryConverterMaster(object):
         self.__dst = Path(dst)
         self.__srcExt = srcExt
         self.__dstExt = dstExt
+        self.__coverExtList = ['jpg', 'jpeg', 'bmp', 'png']
         #self.__executer = ProcessPoolExecutor(max_workers=threads)
         self.__executer = ThreadPoolExecutor(max_workers=threads)
         self.__futures = []
@@ -134,6 +135,36 @@ class MusicLibraryConverterMaster(object):
             self.__futures.append(future)
             future.add_done_callback(self.finished)
             self.__mutex.release()
+            
+    def copyFile(self, srcFile, dstDir):
+        ':type file: Path'
+        ':type dst: Path'
+        dstFile = dstDir.joinpath(srcFile.parts[-1])
+        skipFile = False
+        if dstFile.exists():
+            if dstFile.is_symlink() or not os.access(dstFile.as_posix(), os.W_OK):
+                skipFile = True # Skip all symlinks and destination files which are not writable
+            elif self.__overwrite:
+                skipFile = False # Overwrite file as requested!
+            elif self.__overwriteIfSrcNewer:
+                # Check whether or not the last modification of the source file has been later than the last modification of the destination file
+                # Update if newer
+                if srcFile.stat().st_mtime < dstFile.lstat().st_mtime:
+                    skipFile = True
+                else:
+                    skipFile = False
+            else:
+                skipFile = True # In all other cases: it's better to skip this file
+        elif self.__metadataonly:
+            skipFile = True
+        # Do the work!
+        if not skipFile:
+            try:
+                srcFileStr = (str(srcFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+                dstFileStr = (str(dstFile)).encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding)
+                shutil.copyfile(srcFileStr, dstFileStr)
+            except Exception as e:
+                logging.error('An exception occured: '+str(e))
     
     def handlePathRecursively(self, src, dst):
         ':type src: Path'
@@ -148,9 +179,15 @@ class MusicLibraryConverterMaster(object):
                 ':type p: Path'
                 if (self.__evInterrupted.is_set()):
                     break
-                if p.is_file() and p.name.endswith('.'+self.__srcExt):
-                    self.handleFiles(p, dst)
-                if self.__recursive and p.is_dir():
+                if p.is_file():
+                    if p.name.endswith('.'+self.__srcExt):
+                        self.handleFiles(p, dst)
+                    else:
+                        for cover_ext in self.__coverExtList:
+                            if p.name.endswith('.'+cover_ext):
+                                self.copyFile(p, dst)
+                                break;
+                elif self.__recursive and p.is_dir():
                     dstSubDir = dst.joinpath(p.parts[-1])
                     ': :type dstSubDir: Path'
                     if not dstSubDir.exists():
@@ -234,17 +271,6 @@ class MusicLibraryConverterMaster(object):
     def interrupt(self):
         logging.info("Sending CTRL-C event to all threads")
         self.__executer.shutdown(wait=False)
-        self.__evInterrupted.set()
-
-    def interruptOld(self):
-        logging.info("Sending CTRL-C event to all threads")
-        self.__mutex.acquire()
-#         print ("Sending CTRL-C: Mutex acquired!")
-        self.__executer.shutdown(wait=False)
-        for future in self.__futures:
-            if (not future.cancel()):
-                self.__futureEvents[future].set()
-        self.__mutex.release()
         self.__evInterrupted.set()
 
     def finished(self, future):

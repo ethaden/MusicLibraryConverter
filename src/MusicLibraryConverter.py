@@ -178,7 +178,7 @@ def main(argv=None): # IGNORE:C0111
 
 if __name__ == "__main__":
     from os.path import dirname
-    sys.path.append(dirname(dirname(__file__)))
+    #sys.path.append(dirname(dirname(__file__)))
     signal.signal(signal.SIGINT, signal_handler)
 #     if DEBUG:
 #         sys.argv.append("-h")
