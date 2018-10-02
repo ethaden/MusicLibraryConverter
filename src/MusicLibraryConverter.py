@@ -142,8 +142,9 @@ def main(argv=None): # IGNORE:C0111
                 p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
             else:
                 try:
-                    nice = int(args.nice)
-                    p.nice(nice)
+                    if args.nice!=None:
+                        nice = int(args.nice)
+                        p.nice(nice)
                 except ValueError as e:
                     logging.warning("Please use numerical value for NICE! Using system default process priority")
                 except psutil.AccessDenied as e:
