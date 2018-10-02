@@ -138,7 +138,7 @@ class MusicLibraryConverterExternalFFMpeg(MusicLibraryConverterBackend):
         if platform.system() == 'Windows':
             return 'ffmpeg.exe'
         else:
-            return 'avconv' # ffmpeg is deprecated and will be replaced by avconv
+            return 'ffmpeg' 
         
 def MusicLibraryConverterBackendFactory(converterType, srcParams, dstParams, srcCodec='', dstCodec=''):
     if (converterType == 'FFMpeg'):
