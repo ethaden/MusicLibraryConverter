@@ -33,7 +33,7 @@ class MusicLibraryConverterBackend(object):
     '''
 
 
-    def __init__(self, srcParams, dstParams, srcCodec='', dstCodec=''):
+    def __init__(self, srcParams: str, dstParams: str, srcCodec: str='', dstCodec: str=''):
         '''
         Constructor
         '''
@@ -47,25 +47,25 @@ class MusicLibraryConverterBackend(object):
     def setBackendFound(self, backendFound):
         self.__isBackendFound = backendFound
 
-    def backendFound(self):
+    def backendFound(self) -> bool:
         return self.__isBackendFound
 
-    def getConverterName(self):
+    def getConverterName(self) -> str:
         return None
     
-    def getCommand(self):
+    def getCommand(self) -> Path:
         return self.__command
     
-    def getSrcParams(self):
+    def getSrcParams(self) -> str:
         return self.__srcParams
 
-    def getDstParams(self):
+    def getDstParams(self) -> str:
         return self.__dstParams
     
-    def getSrcCodec(self):
+    def getSrcCodec(self) -> str:
         return self.__srcCodec
     
-    def getDstCodec(self):
+    def getDstCodec(self) -> str:
         return self.__dstCodec
     
     def locateConverter(self):
@@ -129,18 +129,21 @@ class MusicLibraryConverterExternalFFMpeg(MusicLibraryConverterBackend):
             else:
                 result.append(dstParams)
         else:
-            result.extend(['-aq', '2']) # variable bitrate
+            if dstCodec=='mp3':
+                result.extend(['-aq', '2']) # variable bitrate
+            elif dstCodec=='vorbis':
+                result.extend(['-aq', '6']) # variable bitrate, vorbis quality level "6" for "near-lossless"
         # destination file name
         result.append(os.path.normpath(dstFile.as_posix()))
         return result
 
-    def getConverterName(self):
+    def getConverterName(self) -> str:
         if platform.system() == 'Windows':
             return 'ffmpeg.exe'
         else:
             return 'ffmpeg' 
         
-def MusicLibraryConverterBackendFactory(converterType, srcParams, dstParams, srcCodec='', dstCodec=''):
+def MusicLibraryConverterBackendFactory(converterType, srcParams, dstParams, srcCodec='', dstCodec='') -> MusicLibraryConverterBackend:
     if (converterType == 'FFMpeg'):
         return MusicLibraryConverterExternalFFMpeg(srcParams, dstParams, srcCodec, dstCodec)
 

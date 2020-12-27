@@ -44,7 +44,7 @@ import logging
 
 import psutil
 
-from musiclibraryconverter import MusicLibraryConverterMaster
+from musiclibraryconverter import MusicLibraryConverterCoordinator
 
 
 __all__ = []
@@ -61,7 +61,7 @@ class CLIError(Exception):
     '''Generic exception to raise and log different fatal errors.'''
     def __init__(self, msg):
         super(CLIError).__init__(type(self))
-        self.msg = "E: %s" % msg
+        self.msg = 'E: %s' % msg
     def __str__(self):
         return self.msg
     def __unicode__(self):
@@ -86,10 +86,10 @@ def main(argv=None): # IGNORE:C0111
         sys.path.append(myPath)
     
         program_name = os.path.basename(sys.argv[0])
-        program_version = "v%s" % __version__
+        program_version = 'v%s' % __version__
         program_build_date = str(__updated__)
         program_version_message = '%%(prog)s %s (%s)' % (program_version, program_build_date)
-        program_shortdesc = __import__('__main__').__doc__.split("\n")[1]
+        program_shortdesc = __import__('__main__').__doc__.split('\n')[1]
         program_license = '''%s
     
       Created by Eike Thaden on %s.
@@ -106,18 +106,19 @@ def main(argv=None): # IGNORE:C0111
 
         # Setup argument parser
         parser = ArgumentParser(description=program_license, formatter_class=RawDescriptionHelpFormatter)
-        parser.add_argument("-r", "--recursive", dest="recurse", action="store_true", help="recurse into subfolders [default: %(default)s]")
-        parser.add_argument('-O', '--overwrite', dest='overwrite', action="store_true", help="overwrite existing files [default: %(default)s]", default=False)
-        parser.add_argument('-o', '--overwriteIfNewer', dest='overwriteIfSrcNewer', action="store_true", help="overwrite existing files [default: %(default)s]", default=False)
-        parser.add_argument('-m', '--metadataonly', dest='metadataonly', action="store_true", help="Convert meta data only, do not convert files. Implies overwriteIfSrcNewer.", default=False)
-        parser.add_argument("-v", "--verbose", dest="verbose", action="count", help="set verbosity level [default: %(default)s]", default=False)
-        parser.add_argument("-n", "--nice", dest="nice",  help="set nice level [default: system default]")
-        parser.add_argument("-i", "--include", dest="include", help="only include paths matching this regex pattern. Note: exclude is given preference over include. [default: %(default)s]", metavar="RE" )
-        parser.add_argument("-e", "--exclude", dest="exclude", help="exclude paths matching this regex pattern. [default: %(default)s]", metavar="RE" )
-        parser.add_argument('-t', '--threads', dest='threads', help="number of threads to use [default: %(default)s]", default=1)
+        parser.add_argument('-r', '--recursive', dest='recurse', action='store_true', help='recurse into subfolders [default: %(default)s]')
+        parser.add_argument('-O', '--overwrite', dest='overwrite', action='store_true', help='overwrite existing files [default: %(default)s]', default=False)
+        parser.add_argument('-o', '--overwriteIfNewer', dest='overwriteIfSrcNewer', action='store_true', help='overwrite existing files [default: %(default)s]', default=False)
+        parser.add_argument('-m', '--metadataonly', dest='metadataonly', action='store_true', help='Convert meta data only, do not convert files. Implies overwriteIfSrcNewer.', default=False)
+        parser.add_argument('-v', '--verbose', dest='verbose', action='count', help='set verbosity level [default: %(default)s]', default=False)
+        parser.add_argument('-n', '--nice', dest='nice',  help='set nice level [default: system default]')
+        parser.add_argument('-i', '--include', dest='include', help='only include paths matching this regex pattern. Note: exclude is given preference over include. [default: %(default)s]', metavar='RE' )
+        parser.add_argument('-e', '--exclude', dest='exclude', help='exclude paths matching this regex pattern. [default: %(default)s]', metavar='RE' )
+        parser.add_argument('-t', '--threads', dest='threads', help='number of threads to use [default: %(default)s]', default=1)
+        parser.add_argument('-f', '--format', dest='format', default='vorbis', help='Output format: "vorbis" or "mp3" [default: %(default)s]', metavar='RE' )
         parser.add_argument('-V', '--version', action='version', version=program_version_message)
-        parser.add_argument(dest="src", help="paths to source file / source folder")
-        parser.add_argument(dest="dst", help="paths to destination file / destination folder  [default: %(default)s]")
+        parser.add_argument(dest='src', help='paths to source file / source folder')
+        parser.add_argument(dest='dst', help='paths to destination file / destination folder  [default: %(default)s]')
 
         # Process arguments
         args = parser.parse_args()
@@ -133,6 +134,7 @@ def main(argv=None): # IGNORE:C0111
         includePattern = args.include
         excludePattern = args.exclude
         threads = args.threads
+        output_format = args.format
         src = args.src
         dst = args.dst
         dict = vars(args)
@@ -146,25 +148,25 @@ def main(argv=None): # IGNORE:C0111
                         nice = int(args.nice)
                         p.nice(nice)
                 except ValueError as e:
-                    logging.warning("Please use numerical value for NICE! Using system default process priority")
+                    logging.warning('Please use numerical value for NICE! Using system default process priority')
                 except psutil.AccessDenied as e:
-                    logging.warning("Unable to set requested nice level: "+str(e))
+                    logging.warning('Unable to set requested nice level: '+str(e))
 
         logging.basicConfig(level=logging.INFO, format='%(asctime)-15s -- %(levelname)s -- %(message)s')
-        logging.info("MusicLibraryConverter started...")
+        logging.info('MusicLibraryConverter started...')
         if verbose > 0:
             logging.getLogger().setLevel(logging.DEBUG)
-            logging.info("Verbose mode on")
+            logging.info('Verbose mode on')
             if recursive:
-                logging.info("Recursive mode on")
+                logging.info('Recursive mode on')
             else:
-                logging.info("Recursive mode off")
+                logging.info('Recursive mode off')
 
         if includePattern and excludePattern and includePattern == excludePattern:
-            raise CLIError("include and exclude pattern are equal! Nothing will be processed.")
+            raise CLIError('include and exclude pattern are equal! Nothing will be processed.')
 
         global mediaLibraryConverterMaster
-        mediaLibraryConverterMaster = MusicLibraryConverterMaster(verbose, recursive, int(threads), includePattern, excludePattern, overwrite, overwriteIfSrcNewer, metadataonly, src, dst)
+        mediaLibraryConverterMaster = MusicLibraryConverterCoordinator(verbose, recursive, int(threads), includePattern, excludePattern, overwrite, overwriteIfSrcNewer, metadataonly, src, dst, dstCodec=output_format)
         mediaLibraryConverterMaster.run()
 #         time.sleep(20)
 #        for inpath in paths:
@@ -177,19 +179,19 @@ def main(argv=None): # IGNORE:C0111
     except Exception as e:
         if DEBUG or TESTRUN:
             raise(e)
-        indent = len(program_name) * " "
-        sys.stderr.write(program_name + ": " + repr(e) + "\n")
-        sys.stderr.write(indent + "  for help use --help")
+        indent = len(program_name) * ' '
+        sys.stderr.write(program_name + ': ' + repr(e) + '\n')
+        sys.stderr.write(indent + '  for help use --help')
         return 2
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     from os.path import dirname
     #sys.path.append(dirname(dirname(__file__)))
     signal.signal(signal.SIGINT, signal_handler)
 #     if DEBUG:
-#         sys.argv.append("-h")
-#         sys.argv.append("-v")
-#         sys.argv.append("-r")
+#         sys.argv.append('-h')
+#         sys.argv.append('-v')
+#         sys.argv.append('-r')
     if TESTRUN:
         import doctest
         doctest.testmod()
@@ -198,7 +200,7 @@ if __name__ == "__main__":
         import pstats
         profile_filename = 'medialibraryconverter_profile.txt'
         cProfile.run('main()', profile_filename)
-        statsfile = open("profile_stats.txt", "wb")
+        statsfile = open('profile_stats.txt', 'wb')
         p = pstats.Stats(profile_filename, stream=statsfile)
         stats = p.strip_dirs().sort_stats('cumulative')
         stats.print_stats()

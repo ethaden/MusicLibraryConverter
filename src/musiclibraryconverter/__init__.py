@@ -19,6 +19,6 @@
 
 # this is a package
 
-from musiclibraryconverter.MusicLibraryConverterMaster import MusicLibraryConverterMaster
-from musiclibraryconverter.MusicLibraryConverterSlave import MusicLibraryConverterSlave
+from musiclibraryconverter.MusicLibraryConverterCoordinator import MusicLibraryConverterCoordinator
+from musiclibraryconverter.MusicLibraryConverterWorker import MusicLibraryConverterWorker
 from musiclibraryconverter.MusicLibraryConverterBackend import MusicLibraryConverterBackend

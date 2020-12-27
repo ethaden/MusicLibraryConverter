@@ -4,9 +4,18 @@ It uses multi-threading and is based on ffmpeg (Windows) or avconv (Linux) as co
 
 Installation:
 
+Either use pipenv by running (in main project folder):
+pipenv install
+
+then enter virtual environment with
+pipenv shell
+
+or run directly with
+pipenv run
+
 Please install mutagenx:
 https://pypi.python.org/pypi/mutagenx/
-and psutils
+and psutil
 https://pypi.python.org/pypi?:action=display&name=psutil#downloads
 
-Then install ffmpeg (Windows, from http://www.ffmpeg.org/download.html) or avconv (Linux, via package system).
+Then install ffmpeg (on Windows from http://www.ffmpeg.org/download.html, on Linux via package manager).
