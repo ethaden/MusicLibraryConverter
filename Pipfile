@@ -4,10 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-mutagenx = "*"
+mutagen = "*"
 psutil = "*"
 
 [dev-packages]
+pipenv-setup = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3"

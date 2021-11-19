@@ -18,23 +18,27 @@
 # along with MusicLibraryConverter.  If not, see <http://www.gnu.org/licenses/>.
 #
 # frame.text = unicode(frame).encode("iso-8859-1").decode("koi8-r")
-
 '''
 Created on 03.04.2014
 
 @author: Eike Thaden
 '''
+# from mutagenx.id3 import ID3, TIT2, TALB, TPE1, TPE2, TCOM, TCON, COMM, TRCK, TPOS, TDRC, TextFrame
+# from mutagenx.flac import FLAC
+# from mutagenx.easyid3 import EasyID3
+# factory
 
-import logging
-
-from pathlib import Path
-from mutagenx.id3 import ID3, TIT2, TALB, TPE1, TPE2, TCOM, TCON, COMM, TRCK, TPOS, TDRC, TextFrame
-from mutagenx.flac import FLAC
-from mutagenx.easyid3 import EasyID3
 from builtins import type
 import codecs
+import logging
+from pathlib import Path
 
-# factory
+from mutagen.flac import FLAC
+from mutagen.id3 import ID3
+from mutagen.id3 import TIT2, TALB, TPE1, TPE2, TCOM, TCON, COMM, TDRC, \
+    TRCK, TPOS
+
+
 def createMusicLibraryTagConverter(file):
     ':type file: Path'
     assert isinstance(file, Path)
